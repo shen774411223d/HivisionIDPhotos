@@ -51,13 +51,13 @@
 
 - オンライン体験： [![SwanHub Demo](https://img.shields.io/static/v1?label=Demo&message=SwanHub%20Demo&color=blue)](https://swanhub.co/ZeYiLin/HivisionIDPhotos/demo)、[![Spaces](https://img.shields.io/badge/🤗-Open%20in%20Spaces-blue)](https://huggingface.co/spaces/TheEeeeLin/HivisionIDPhotos)、[![][modelscope-shield]][modelscope-link]
 
+- 2024.09.18: Gradioデモに**テンプレート写真の共有**機能を追加
+- 2024.09.17: Gradioデモに**カスタム底色-HEX入力**機能を追加 | **（コミュニティ貢献）C++バージョン** - [HivisionIDPhotos-cpp](https://github.com/zjkhahah/HivisionIDPhotos-cpp) 貢献 by [zjkhahah](https://github.com/zjkhahah)
+- 2024.09.16: Gradioデモに**顔回転対応**機能を追加、カスタムサイズ入力に**ミリメートル**をサポート
 - 2024.09.14: Gradioデモに**カスタムDPI**機能を追加、日本語と韓国語を追加，**明るさ、コントラスト、鮮明度の調整**機能を追加
 - 2024.09.12: Gradioデモに**ホワイトニング**機能を追加 | APIインターフェースに**ウォーターマーク追加**、**写真のKBサイズ設定**、**証明写真のトリミング**を追加
 - 2024.09.11: Gradioデモに**透過画像表示とダウンロード**機能を追加しました。
 - 2024.09.09: 新しい**背景除去モデル** [BiRefNet-v1-lite](https://github.com/ZhengPeng7/BiRefNet) を追加 | Gradioに**高度なパラメータ設定**および**ウォーターマーク**タブを追加
-- 2024.09.08: 新しい**切り抜きモデル** [RMBG-1.4](https://huggingface.co/briaai/RMBG-1.4) を追加 | **ComfyUIワークフロー** - [HivisionIDPhotos-ComfyUI](https://github.com/AIFSH/HivisionIDPhotos-ComfyUI) AIFSHによる貢献
-- 2024.09.07: **顔検出APIオプション** [Face++](docs/face++_EN.md) を追加し、より高精度な顔検出を実現
-- 2024.09.06: 新しい切り抜きモデル [modnet_photographic_portrait_matting.onnx](https://github.com/ZHKKKe/MODNet) を追加
 
 <br>
 
@@ -91,12 +91,17 @@ HivisionIDPhotoがあなたに役立つ場合は、このリポジトリをス�
 
 私たちは、コミュニティによって構築されたHivisionIDPhotosの興味深いアプリケーションや拡張機能をいくつか共有しています：
 
-- [HivisionIDPhotos-windows-GUI](https://github.com/zhaoyun0071/HivisionIDPhotos-windows-GUI)：Windowsクライアントアプリケーション、[zhaoyun0071](https://github.com/zhaoyun0071)によって構築されました
-- [HivisionIDPhotos-ComfyUI](https://github.com/AIFSH/HivisionIDPhotos-ComfyUI)：ComfyUI証明写真処理ワークフロー、[AIFSH](https://github.com/AIFSH/HivisionIDPhotos-ComfyUI)によって構築されました 
+- [HivisionIDPhotos-ComfyUI](https://github.com/AIFSH/HivisionIDPhotos-ComfyUI)：ComfyUI証明写真処理ワークフロー、[AIFSH](https://github.com/AIFSH/HivisionIDPhotos-ComfyUI)によって構築 
 
-[![](assets/comfyui.png)](https://github.com/AIFSH/HivisionIDPhotos-ComfyUI)
+[<img src="assets/comfyui.png" width="900" alt="ComfyUI workflow">](https://github.com/AIFSH/HivisionIDPhotos-ComfyUI)
 
-- [HivisionIDPhotos-wechat-weapp](https://github.com/no1xuan/HivisionIDPhotos-wechat-weapp): WeChat ID写真ミニプログラムで、HivisionIDphotosアルゴリズムに基づいており、[no1xuan](https://github.com/no1xuan)が貢献しました。
+- [HivisionIDPhotos-wechat-weapp](https://github.com/no1xuan/HivisionIDPhotos-wechat-weapp)：WeChat証明写真ミニプログラム、HivisionIDphotosアルゴリズムに基づく、[no1xuan](https://github.com/no1xuan)による貢献
+
+[<img src="assets/community-wechat-miniprogram.png" width="900" alt="HivisionIDPhotos-wechat-weapp">](https://github.com/no1xuan/HivisionIDPhotos-wechat-weapp)
+
+- [HivisionIDPhotos-cpp](https://github.com/zjkhahah/HivisionIDPhotos-cpp)：HivisionIDphotos C++バージョン、[zjkhahah](https://github.com/zjkhahah)によって構築
+- [HivisionIDPhotos-windows-GUI](https://github.com/zhaoyun0071/HivisionIDPhotos-windows-GUI)：Windowsクライアントアプリケーション、[zhaoyun0071](https://github.com/zhaoyun0071)によって構築
+- [HivisionIDPhotos-NAS](https://github.com/ONG-Leo/HivisionIDPhotos-NAS)：Synology NAS導入の中国語チュートリアル、[ONG-Leo](https://github.com/ONG-Leo)による貢献
 
 <br>
 
@@ -147,14 +152,20 @@ python scripts/download_model.py --models all
 
 ## 5. GPU推論の加速（オプション）
 
-NVIDIA GPUによる推論加速を使用する場合は、CUDAとcuDNNがインストールされていることを確認し、[文書](https://onnxruntime.ai/docs/execution-providers/CUDA-ExecutionProvider.html#cuda-12x)に従って対応する`onnxruntime-gpu`バージョンをインストールします。例：
+現在のバージョンでは、NVIDIA GPUで加速可能なモデルは`birefnet-v1-lite`です。約16GBのVRAMが必要であることにご注意ください。
+
+NVIDIA GPUを使用して推論を加速したい場合は、CUDAとcuDNNがインストールされていることを確認した上で、[onnxruntime-gpuのドキュメント](https://onnxruntime.ai/docs/execution-providers/CUDA-ExecutionProvider.html#cuda-12x)に従って適切な`onnxruntime-gpu`バージョンをインストールし、[PyTorchの公式サイト](https://pytorch.org/get-started/locally/)から適切な`pytorch`バージョンをインストールしてください。
 
 ```bash
-# CUDA 12.x, cuDNN 8
+# もしコンピュータにCUDA 12.xとcuDNN 8がインストールされている場合
+# torchのインストールは任意です。cuDNNが設定できない場合は、torchを試してみてください
 pip install onnxruntime-gpu==1.18.0
+pip install torch --index-url https://download.pytorch.org/whl/cu121
 ```
 
-完了後、`birefnet-v1-lite`モデルを呼び出すと、GPUによる推論加速が利用されます。
+インストールが完了したら、`birefnet-v1-lite`モデルを呼び出してGPU加速推論を利用します。
+
+> TIPS: CUDAのインストールは下位互換性があります。たとえば、CUDAのバージョンが12.6で、torchが現在対応している最高バージョンが12.4である場合、コンピュータに12.4のバージョンをインストールすることも可能です。
 
 <br>
 
@@ -256,7 +267,7 @@ docker pull linzeyi/hivision_idphotos
 
 **方法二：Dockerfileから直接イメージをビルド：**
 
-モデル重みファイル[hivision_modnet.onnx](https://github.com/Zeyi-Lin/HivisionIDPhotos/releases/tag/pretrained-model)を`hivision/creator/weights`に配置したことを確認した後、プロジェクトのルートディレクトリで実行：
+`hivision/creator/weights` ディレクトリに少なくとも1つの[マスキングモデルの重みファイル](#3-重みファイルのダウンロード)があることを確認してから、プロジェクトのルートディレクトリで以下を実行してください：
 
 ```bash
 docker build -t linzeyi/hivision_idphotos .
@@ -264,7 +275,7 @@ docker build -t linzeyi/hivision_idphotos .
 
 **方法三：Docker composeでビルド：**
 
-モデル重みファイル[hivision_modnet.onnx](https://github.com/Zeyi-Lin/HivisionIDPhotos/releases/tag/pretrained-model)を`hivision/creator/weights`に配置したことを確認した後、プロジェクトのルートディレクトリで実行：
+`hivision/creator/weights` ディレクトリに少なくとも1つの[マスキングモデルの重みファイル](#3-重みファイルのダウンロード)があることを確認してから、プロジェクトのルートディレクトリで以下を実行してください：
 
 ```bash
 docker compose build

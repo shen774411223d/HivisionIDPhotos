@@ -87,12 +87,17 @@ LOCALES = {
     "size_mode": {
         "en": {
             "label": "ID photo size options",
-            "choices": ["Size List", "Only Change Background", "Custom Size"],
+            "choices": [
+                "Size List",
+                "Only Change BG",
+                "Custom(px)",
+                "Custom(mm)",
+            ],
             "custom_size_eror": "The width should not be greater than the length; the length and width should not be less than 100, and no more than 1800.",
         },
         "zh": {
             "label": "证件照尺寸选项",
-            "choices": ["尺寸列表", "只换底", "自定义尺寸"],
+            "choices": ["尺寸列表", "只换底", "自定义(px)", "自定义(mm)"],
             "custom_size_eror": "宽度不应大于长度；长度和宽度不应小于100，不大于1800。",
         },
         "ja": {
@@ -100,14 +105,56 @@ LOCALES = {
             "choices": [
                 "サイズリスト",
                 "背景のみ変更",
-                "カスタムサイズ",
+                "カスタムサイズ(px)",
+                "カスタムサイズ(mm)",
             ],
             "custom_size_eror": "幅は長さより大きくしないでください。長さと幅は100以上1800以下にしてください。",
         },
         "ko": {
             "label": "증명사진 크기 옵션",
-            "choices": ["크기 목록", "배경만 변경", "사용자 지정 크기"],
+            "choices": [
+                "크기 목록",
+                "배경만 변경",
+                "사용자 지정(px)",
+                "사용자 지정(mm)",
+            ],
             "custom_size_eror": "너비는 길이보다 크지 않아야 합니다; 길이와 너비는 100 이상 1800 이하여야 합니다.",
+        },
+    },
+    "custom_size_px": {
+        "en": {
+            "height": "Height(px)",
+            "width": "Width(px)",
+        },
+        "zh": {
+            "height": "高度(px)",
+            "width": "宽度(px)",
+        },
+        "ja": {
+            "height": "高さ(px)",
+            "width": "幅(px)",
+        },
+        "ko": {
+            "height": "높이(px)",
+            "width": "너비(px)",
+        },
+    },
+    "custom_size_mm": {
+        "en": {
+            "height": "Height(mm)",
+            "width": "Width(mm)",
+        },
+        "zh": {
+            "height": "高度(mm)",
+            "width": "宽度(mm)",
+        },
+        "ja": {
+            "height": "高さ(mm)",
+            "width": "幅(mm)",
+        },
+        "ko": {
+            "height": "높이(mm)",
+            "width": "너비(mm)",
         },
     },
     "size_list": {
@@ -135,22 +182,22 @@ LOCALES = {
     "bg_color": {
         "en": {
             "label": "Background color",
-            "choices": list(color_list_dict_EN.keys()) + ["Custom"],
+            "choices": list(color_list_dict_EN.keys()) + ["Custom(RGB)", "Custom(HEX)"],
             "develop": color_list_dict_EN,
         },
         "zh": {
             "label": "背景颜色",
-            "choices": list(color_list_dict_CN.keys()) + ["自定义底色"],
+            "choices": list(color_list_dict_CN.keys()) + ["自定义(RGB)", "自定义(HEX)"],
             "develop": color_list_dict_CN,
         },
         "ja": {
             "label": "背景色",
-            "choices": list(color_list_dict_EN.keys()) + ["カスタム"],
+            "choices": list(color_list_dict_EN.keys()) + ["カスタム(RGB)", "カスタム(HEX)"],
             "develop": color_list_dict_EN,
         },
         "ko": {
             "label": "배경색",
-            "choices": list(color_list_dict_EN.keys()) + ["사용자 지정"],
+            "choices": list(color_list_dict_EN.keys()) + ["사용자 지정(RGB)", "사용자 지정(HEX)"],
             "develop": color_list_dict_EN,
         },
     },
@@ -618,6 +665,38 @@ LOCALES = {
         },
         "ko": {
             "label": "포화도 강도",
+        },
+    },
+    "face_alignment": {
+        "en": {
+            "label": "Face Alignment",
+            "choices": ["Open"],
+        },
+        "zh": {
+            "label": "人脸旋转对齐",
+            "choices": ["开启"],
+        },
+        "ja": {
+            "label": "顔の整列",
+            "choices": ["開始"],
+        },
+        "ko": {
+            "label": "얼굴 정렬",
+            "choices": ["시작"],
+        },
+    },
+    "template_photo": {
+        "en": {
+            "label": "Social Media Template Photo",
+        },
+        "zh": {
+            "label": "社交媒体模版照",
+        },
+        "ja": {
+            "label": "SNS テンプレート写真",
+        },
+        "ko": {
+            "label": "SNS 템플릿 사진",
         },
     },
 }

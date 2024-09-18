@@ -1,7 +1,7 @@
 import gradio as gr
 import os
 import pathlib
-from demo.locals import LOCALES
+from demo.locales import LOCALES
 from demo.processor import IDPhotoProcessor
 
 """
@@ -23,7 +23,13 @@ def create_ui(
     face_detect_models: list,
     language: list,
 ):
-    DEFAULT_LANG = language[0]
+
+    # 加载环境变量DEFAULT_LANG, 如果有且在language中，则将DEFAULT_LANG设置为环境变量
+    if "DEFAULT_LANG" in os.environ and os.environ["DEFAULT_LANG"] in language:
+        DEFAULT_LANG = os.environ["DEFAULT_LANG"]
+    else:
+        DEFAULT_LANG = language[0]
+
     DEFAULT_HUMAN_MATTING_MODEL = "modnet_photographic_portrait_matting"
     DEFAULT_FACE_DETECT_MODEL = "retinaface-resnet50"
 
@@ -37,7 +43,7 @@ def create_ui(
     demo = gr.Blocks(title="HivisionIDPhotos")
 
     with demo:
-        gr.HTML(load_description(os.path.join(root_dir, "assets/title.md")))
+        gr.HTML(load_description(os.path.join(root_dir, "demo/assets/title.md")))
         with gr.Row():
             # ------------------------ 左半边 UI ------------------------
             with gr.Column():
@@ -67,26 +73,46 @@ def create_ui(
                 with gr.Tab(
                     LOCALES["key_param"][DEFAULT_LANG]["label"]
                 ) as key_parameter_tab:
-                    mode_options = gr.Radio(
-                        choices=LOCALES["size_mode"][DEFAULT_LANG]["choices"],
-                        label=LOCALES["size_mode"][DEFAULT_LANG]["label"],
-                        value=LOCALES["size_mode"][DEFAULT_LANG]["choices"][0],
-                    )
-
+                    with gr.Row():
+                        mode_options = gr.Radio(
+                            choices=LOCALES["size_mode"][DEFAULT_LANG]["choices"],
+                            label=LOCALES["size_mode"][DEFAULT_LANG]["label"],
+                            value=LOCALES["size_mode"][DEFAULT_LANG]["choices"][0],
+                            min_width=520,
+                        )
+                        face_alignment_options = gr.CheckboxGroup(
+                            label=LOCALES["face_alignment"][DEFAULT_LANG]["label"],
+                            choices=LOCALES["face_alignment"][DEFAULT_LANG]["choices"],
+                            interactive=True,
+                        )
                     with gr.Row(visible=True) as size_list_row:
                         size_list_options = gr.Dropdown(
                             choices=LOCALES["size_list"][DEFAULT_LANG]["choices"],
-                            label="预设尺寸",
+                            label=LOCALES["size_list"][DEFAULT_LANG]["label"],
                             value=LOCALES["size_list"][DEFAULT_LANG]["choices"][0],
                             elem_id="size_list",
                         )
-
-                    with gr.Row(visible=False) as custom_size:
-                        custom_size_height = gr.Number(
-                            value=413, label="height", interactive=True
+                    with gr.Row(visible=False) as custom_size_px:
+                        custom_size_height_px = gr.Number(
+                            value=413,
+                            label=LOCALES["custom_size_px"][DEFAULT_LANG]["height"],
+                            interactive=True,
                         )
-                        custom_size_width = gr.Number(
-                            value=295, label="width", interactive=True
+                        custom_size_width_px = gr.Number(
+                            value=295,
+                            label=LOCALES["custom_size_px"][DEFAULT_LANG]["width"],
+                            interactive=True,
+                        )
+                    with gr.Row(visible=False) as custom_size_mm:
+                        custom_size_height_mm = gr.Number(
+                            value=35,
+                            label=LOCALES["custom_size_mm"][DEFAULT_LANG]["height"],
+                            interactive=True,
+                        )
+                        custom_size_width_mm = gr.Number(
+                            value=25,
+                            label=LOCALES["custom_size_mm"][DEFAULT_LANG]["width"],
+                            interactive=True,
                         )
 
                     color_options = gr.Radio(
@@ -94,11 +120,16 @@ def create_ui(
                         label=LOCALES["bg_color"][DEFAULT_LANG]["label"],
                         value=LOCALES["bg_color"][DEFAULT_LANG]["choices"][0],
                     )
-
-                    with gr.Row(visible=False) as custom_color:
-                        custom_color_R = gr.Number(value=0, label="R", interactive=True)
-                        custom_color_G = gr.Number(value=0, label="G", interactive=True)
-                        custom_color_B = gr.Number(value=0, label="B", interactive=True)
+                    
+                    # 自定义颜色RGB
+                    with gr.Row(visible=False) as custom_color_rgb:
+                        custom_color_R = gr.Number(value=0, label="R", minimum=0, maximum=255, interactive=True)
+                        custom_color_G = gr.Number(value=0, label="G", minimum=0, maximum=255, interactive=True)
+                        custom_color_B = gr.Number(value=0, label="B", minimum=0, maximum=255, interactive=True)
+                    
+                    # 自定义颜色HEX
+                    with gr.Row(visible=False) as custom_color_hex:
+                        custom_color_hex_value = gr.Text(value="000000", label="Hex", interactive=True)
 
                     render_options = gr.Radio(
                         choices=LOCALES["render_mode"][DEFAULT_LANG]["choices"],
@@ -318,27 +349,34 @@ def create_ui(
                     label=LOCALES["notification"][DEFAULT_LANG]["label"], visible=False
                 )
                 with gr.Row():
+                    # 标准照
                     img_output_standard = gr.Image(
                         label=LOCALES["standard_photo"][DEFAULT_LANG]["label"],
                         height=350,
                         format="jpeg",
                     )
+                    # 高清照
                     img_output_standard_hd = gr.Image(
                         label=LOCALES["hd_photo"][DEFAULT_LANG]["label"],
                         height=350,
                         format="jpeg",
                     )
-
+                # 排版照
                 img_output_layout = gr.Image(
                     label=LOCALES["layout_photo"][DEFAULT_LANG]["label"],
                     height=350,
                     format="jpeg",
                 )
-
-                file_download = gr.File(
-                    label=LOCALES["download"][DEFAULT_LANG]["label"], visible=False
-                )
-
+                # 模版照片
+                with gr.Accordion(
+                    LOCALES["template_photo"][DEFAULT_LANG]["label"], open=False
+                ) as template_image_accordion:      
+                    img_output_template = gr.Gallery(
+                        label=LOCALES["template_photo"][DEFAULT_LANG]["label"],
+                        height=350,
+                        format="jpeg",
+                    )
+                # 抠图图像
                 with gr.Accordion(
                     LOCALES["matting_image"][DEFAULT_LANG]["label"], open=False
                 ) as matting_image_accordion:
@@ -356,7 +394,7 @@ def create_ui(
                             elem_id="hd_photo_png",
                         )
 
-            # ---------------- 设置隐藏/显示组件 ----------------
+            # ---------------- 多语言切换函数 ----------------
             def change_language(language):
                 return {
                     face_detect_model_options: gr.update(
@@ -411,9 +449,6 @@ def create_ui(
                     ),
                     img_output_layout: gr.update(
                         label=LOCALES["layout_photo"][language]["label"]
-                    ),
-                    file_download: gr.update(
-                        label=LOCALES["download"][language]["label"]
                     ),
                     head_measure_ratio_option: gr.update(
                         label=LOCALES["head_measure_ratio"][language]["label"]
@@ -483,6 +518,28 @@ def create_ui(
                     saturation_option: gr.update(
                         label=LOCALES["saturation_strength"][language]["label"]
                     ),
+                    face_alignment_options: gr.update(
+                        label=LOCALES["face_alignment"][language]["label"],
+                        choices=LOCALES["face_alignment"][language]["choices"],
+                    ),
+                    custom_size_width_px: gr.update(
+                        label=LOCALES["custom_size_px"][language]["width"]
+                    ),
+                    custom_size_height_px: gr.update(
+                        label=LOCALES["custom_size_px"][language]["height"]
+                    ),
+                    custom_size_width_mm: gr.update(
+                        label=LOCALES["custom_size_mm"][language]["width"]
+                    ),
+                    custom_size_height_mm: gr.update(
+                        label=LOCALES["custom_size_mm"][language]["height"]
+                    ),
+                    img_output_template: gr.update(
+                        label=LOCALES["template_photo"][language]["label"]
+                    ),
+                    template_image_accordion: gr.update(
+                        label=LOCALES["template_photo"][language]["label"]
+                    ),
                 }
 
             def change_visibility(option, lang, locales_key, custom_component):
@@ -493,24 +550,45 @@ def create_ui(
                 }
 
             def change_color(colors, lang):
-                return change_visibility(colors, lang, "bg_color", custom_color)
+                return {
+                    custom_color_rgb: gr.update(visible = colors == LOCALES["bg_color"][lang]["choices"][-2]),
+                    custom_color_hex: gr.update(visible = colors == LOCALES["bg_color"][lang]["choices"][-1]),
+                }
+                
 
             def change_size_mode(size_option_item, lang):
                 choices = LOCALES["size_mode"][lang]["choices"]
-                if size_option_item == choices[2]:
+                # 如果选择自定义尺寸mm
+                if size_option_item == choices[3]:
                     return {
-                        custom_size: gr.update(visible=True),
+                        custom_size_px: gr.update(visible=False),
+                        custom_size_mm: gr.update(visible=True),
                         size_list_row: gr.update(visible=False),
+                        face_alignment_options: gr.update(visible=True),
                     }
+                # 如果选择自定义尺寸px
+                elif size_option_item == choices[2]:
+                    return {
+                        custom_size_px: gr.update(visible=True),
+                        custom_size_mm: gr.update(visible=False),
+                        size_list_row: gr.update(visible=False),
+                        face_alignment_options: gr.update(visible=True),
+                    }
+                # 如果选择只换底，则隐藏所有尺寸组件
                 elif size_option_item == choices[1]:
                     return {
-                        custom_size: gr.update(visible=False),
+                        custom_size_px: gr.update(visible=False),
+                        custom_size_mm: gr.update(visible=False),
                         size_list_row: gr.update(visible=False),
+                        face_alignment_options: gr.update(visible=False),
                     }
+                # 如果选择预设尺寸，则隐藏自定义尺寸组件
                 else:
                     return {
-                        custom_size: gr.update(visible=False),
+                        custom_size_px: gr.update(visible=False),
+                        custom_size_mm: gr.update(visible=False),
                         size_list_row: gr.update(visible=True),
+                        face_alignment_options: gr.update(visible=True),
                     }
 
             def change_image_kb(image_kb_option, lang):
@@ -544,7 +622,6 @@ def create_ui(
                     img_output_standard_png,
                     img_output_standard_hd_png,
                     img_output_layout,
-                    file_download,
                     head_measure_ratio_option,
                     top_distance_option,
                     key_parameter_tab,
@@ -566,27 +643,44 @@ def create_ui(
                     contrast_option,
                     sharpen_option,
                     saturation_option,
+                    face_alignment_options,
+                    custom_size_width_px,
+                    custom_size_height_px,
+                    custom_size_width_mm,
+                    custom_size_height_mm,
+                    img_output_template,
+                    template_image_accordion,
                 ],
             )
 
-            color_options.input(
-                change_color,
-                inputs=[color_options, language_options],
-                outputs=[custom_color],
-            )
-
+            # ---------------- 设置隐藏/显示交互效果 ----------------
+            # 尺寸模式
             mode_options.input(
                 change_size_mode,
                 inputs=[mode_options, language_options],
-                outputs=[custom_size, size_list_row],
+                outputs=[
+                    custom_size_px,
+                    custom_size_mm,
+                    size_list_row,
+                    face_alignment_options,
+                ],
             )
 
+            # 颜色
+            color_options.input(
+                change_color,
+                inputs=[color_options, language_options],
+                outputs=[custom_color_rgb, custom_color_hex],
+            )
+
+            # 图片kb
             image_kb_options.input(
                 change_image_kb,
                 inputs=[image_kb_options, language_options],
                 outputs=[custom_image_kb_size],
             )
 
+            # 图片dpi
             image_dpi_options.input(
                 change_image_dpi,
                 inputs=[image_dpi_options, language_options],
@@ -605,8 +699,11 @@ def create_ui(
                     custom_color_R,
                     custom_color_G,
                     custom_color_B,
-                    custom_size_height,
-                    custom_size_width,
+                    custom_color_hex_value,
+                    custom_size_height_px,
+                    custom_size_width_px,
+                    custom_size_height_mm,
+                    custom_size_width_mm,
                     custom_image_kb_size,
                     language_options,
                     matting_model_options,
@@ -627,6 +724,7 @@ def create_ui(
                     contrast_option,
                     sharpen_option,
                     saturation_option,
+                    face_alignment_options,
                 ],
                 outputs=[
                     img_output_standard,
@@ -634,8 +732,8 @@ def create_ui(
                     img_output_standard_png,
                     img_output_standard_hd_png,
                     img_output_layout,
+                    img_output_template,
                     notification,
-                    file_download,
                 ],
             )
 

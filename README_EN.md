@@ -53,14 +53,14 @@ English / [中文](README.md) / [日本語](README_JP.md) / [한국어](README_K
 
 - Online Experience: [![SwanHub Demo](https://img.shields.io/static/v1?label=Demo&message=SwanHub%20Demo&color=blue)](https://swanhub.co/ZeYiLin/HivisionIDPhotos/demo)、[![Spaces](https://img.shields.io/badge/🤗-Open%20in%20Spaces-blue)](https://huggingface.co/spaces/TheEeeeLin/HivisionIDPhotos)、[![][modelscope-shield]][modelscope-link]
 
+- 2024.09.18: Gradio Demo adds **Share Template Photos** feature
+- 2024.09.17: Gradio Demo adds **Custom Background Color-HEX Input** feature | **(Community Contribution) C++ Version** - [HivisionIDPhotos-cpp](https://github.com/zjkhahah/HivisionIDPhotos-cpp) contributed by [zjkhahah](https://github.com/zjkhahah)
+- 2024.09.16: Gradio Demo adds **Face Rotation Alignment** feature, custom size input supports **millimeters**
 - 2024.09.14: Gradio Demo adds **Custom DPI** feature, adds Japanese and Korean support, adds **Adjust Brightness, Contrast, Sharpness** feature
 - 2024.09.12: Gradio Demo adds **Whitening** feature | API interface adds **Watermark**, **Set Photo KB Size**, **ID Photo Cropping**
 - 2024.09.11: Added **transparent image display and download** feature to Gradio Demo.
 - 2024.09.10: Added a new **face detection model** Retinaface-resnet50, which offers higher detection accuracy at a slightly slower speed compared to mtcnn. Recommended for use.
 - 2024.09.09: Added a new **Background Removal Model** [BiRefNet-v1-lite](https://github.com/ZhengPeng7/BiRefNet) | Gradio added **Advanced Parameter Settings** and **Watermark** tabs
-- 2024.09.08: Added new **Matting Model** [RMBG-1.4](https://huggingface.co/briaai/RMBG-1.4) | **ComfyUI Workflow** - [HivisionIDPhotos-ComfyUI](https://github.com/AIFSH/HivisionIDPhotos-ComfyUI) contributed by [AIFSH](https://github.com/AIFSH/HivisionIDPhotos-ComfyUI)
-- 2024.09.07: Added **Face Detection API Option** [Face++](docs/face++_EN.md), achieving higher precision in face detection
-- 2024.09.06: Added new matting model [modnet_photographic_portrait_matting.onnx](https://github.com/ZHKKKe/MODNet)
 
 <br>
 
@@ -94,12 +94,17 @@ If HivisionIDPhoto helps you, please star this repo or recommend it to your frie
 
 We have shared some interesting applications and extensions of HivisionIDPhotos built by the community:
 
-- [HivisionIDPhotos-windows-GUI](https://github.com/zhaoyun0071/HivisionIDPhotos-windows-GUI): Windows client application built by [zhaoyun0071](https://github.com/zhaoyun0071)
 - [HivisionIDPhotos-ComfyUI](https://github.com/AIFSH/HivisionIDPhotos-ComfyUI): ComfyUI ID photo processing workflow built by [AIFSH](https://github.com/AIFSH/HivisionIDPhotos-ComfyUI) 
 
-[![](assets/comfyui.png)](https://github.com/AIFSH/HivisionIDPhotos-ComfyUI)
+[<img src="assets/comfyui.png" width="900" alt="ComfyUI workflow">](https://github.com/AIFSH/HivisionIDPhotos-ComfyUI)
 
 - [HivisionIDPhotos-wechat-weapp](https://github.com/no1xuan/HivisionIDPhotos-wechat-weapp): WeChat ID photo mini program, powered by the HivisionIDphotos algorithm, contributed by [no1xuan](https://github.com/no1xuan)
+
+[<img src="assets/community-wechat-miniprogram.png" width="900" alt="HivisionIDPhotos-wechat-weapp">](https://github.com/no1xuan/HivisionIDPhotos-wechat-weapp)
+
+- [HivisionIDPhotos-cpp](https://github.com/zjkhahah/HivisionIDPhotos-cpp): C++ version of HivisionIDphotos, built by [zjkhahah](https://github.com/zjkhahah)
+- [HivisionIDPhotos-windows-GUI](https://github.com/zhaoyun0071/HivisionIDPhotos-windows-GUI): Windows client application built by [zhaoyun0071](https://github.com/zhaoyun0071)
+- [HivisionIDPhotos-NAS](https://github.com/ONG-Leo/HivisionIDPhotos-NAS): Chinese tutorial for Synology NAS deployment, contributed by [ONG-Leo](https://github.com/ONG-Leo)
 
 <br>
 
@@ -151,15 +156,20 @@ Store in the project's `hivision/creator/weights` directory:
 
 ## 5. GPU Inference Acceleration (Optional)
 
-If you need to use NVIDIA GPU for accelerated inference, ensure that you have installed CUDA and cuDNN, then find the corresponding `onnxruntime-gpu` version to install according to the [documentation](https://onnxruntime.ai/docs/execution-providers/CUDA-ExecutionProvider.html#cuda-12x), for example:
+In the current version, the model that can be accelerated by NVIDIA GPUs is `birefnet-v1-lite`, and please ensure you have around 16GB of VRAM.
+
+If you want to use NVIDIA GPU acceleration for inference, after ensuring you have installed CUDA and cuDNN, find the corresponding `onnxruntime-gpu` version to install according to the [onnxruntime-gpu documentation](https://onnxruntime.ai/docs/execution-providers/CUDA-ExecutionProvider.html#cuda-12x), and find the corresponding `pytorch` version to install according to the [pytorch official website](https://pytorch.org/get-started/locally/).
 
 ```bash
-# CUDA 12.x, cuDNN 8
+# If your computer is installed with CUDA 12.x and cuDNN 8
+# Installing torch is optional. If you can't configure cuDNN, try installing torch
 pip install onnxruntime-gpu==1.18.0
+pip install torch --index-url https://download.pytorch.org/whl/cu121
 ```
 
-After completing this, calling models like `birefnet-v1-lite` will utilize GPU acceleration for inference.
+After completing the installation, call the `birefnet-v1-lite` model to utilize GPU acceleration for inference.
 
+> TIP: CUDA installations are backward compatible. For example, if your CUDA version is 12.6 but the highest version currently matched by torch is 12.4, it's still possible to install version 12.4 on your computer.
 <br>
 
 # 🚀 Run Gradio Demo
@@ -260,7 +270,7 @@ docker pull linzeyi/hivision_idphotos
 
 **Method 2: Directly build the image from Dockerfile:**
 
-After ensuring that the model weight file [hivision_modnet.onnx](https://github.com/Zeyi-Lin/HivisionIDPhotos/releases/tag/pretrained-model) is placed in `hivision/creator/weights`, execute the following in the project root directory:
+After ensuring that at least one [matting model weight file](#3-download-weight-files) is placed in the `hivision/creator/weights` directory, execute the following in the project root directory:
 
 ```bash
 docker build -t linzeyi/hivision_idphotos .
@@ -268,7 +278,7 @@ docker build -t linzeyi/hivision_idphotos .
 
 **Method 3: Build using Docker Compose:**
 
-Ensure that the model weight file [hivision_modnet.onnx](https://github.com/Zeyi-Lin/HivisionIDPhotos/releases/tag/pretrained-model) is placed in `hivision/creator/weights`, then execute the following in the project root directory:
+After ensuring that at least one [matting model weight file](#3-download-weight-files) is placed in the `hivision/creator/weights` directory, execute the following in the project root directory:
 
 ```bash
 docker compose build

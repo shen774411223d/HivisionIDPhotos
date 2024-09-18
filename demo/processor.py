@@ -12,11 +12,12 @@ from hivision.creator.layout_calculator import (
     generate_layout_image,
 )
 from hivision.creator.choose_handler import choose_handler
+from hivision.plugin.template.template_calculator import generte_template_photo
 from demo.utils import range_check
 import gradio as gr
 import os
 import time
-from demo.locals import LOCALES
+from demo.locales import LOCALES
 
 
 class IDPhotoProcessor:
@@ -31,8 +32,11 @@ class IDPhotoProcessor:
         custom_color_R,
         custom_color_G,
         custom_color_B,
+        custom_color_hex_value,
         custom_size_height,
         custom_size_width,
+        custom_size_height_mm,
+        custom_size_width_mm,
         custom_image_kb,
         language,
         matting_model_option,
@@ -53,6 +57,7 @@ class IDPhotoProcessor:
         contrast_strength=0,
         sharpen_strength=0,
         saturation_strength=0,
+        face_alignment_option=False,
     ):
         # 初始化参数
         top_distance_min = top_distance_max - 0.02
@@ -71,6 +76,8 @@ class IDPhotoProcessor:
             size_list_option,
             custom_size_height,
             custom_size_width,
+            custom_size_height_mm,
+            custom_size_width_mm,
         )
         if isinstance(size_result, list):
             return size_result  # 返回错误信息
@@ -83,6 +90,7 @@ class IDPhotoProcessor:
             custom_color_R,
             custom_color_G,
             custom_color_B,
+            custom_color_hex_value,
         )
 
         # 如果设置了自定义KB大小
@@ -115,6 +123,7 @@ class IDPhotoProcessor:
                 contrast_strength,
                 sharpen_strength,
                 saturation_strength,
+                face_alignment_option,
             )
         except (FaceError, APIError):
             return self._handle_photo_generation_error(language)
@@ -133,6 +142,7 @@ class IDPhotoProcessor:
             watermark_text_color,
         )
 
+    # 初始化idphoto_json字典
     def _initialize_idphoto_json(
         self,
         mode_option,
@@ -150,6 +160,7 @@ class IDPhotoProcessor:
             "custom_image_dpi": None,
         }
 
+    # 处理尺寸模式
     def _process_size_mode(
         self,
         idphoto_json,
@@ -157,14 +168,32 @@ class IDPhotoProcessor:
         size_list_option,
         custom_size_height,
         custom_size_width,
+        custom_size_height_mm,
+        custom_size_width_mm,
     ):
         """处理尺寸模式"""
+        # 如果选择了尺寸列表
         if idphoto_json["size_mode"] == LOCALES["size_mode"][language]["choices"][0]:
             idphoto_json["size"] = LOCALES["size_list"][language]["develop"][
                 size_list_option
             ]
-        elif idphoto_json["size_mode"] == LOCALES["size_mode"][language]["choices"][2]:
-            id_height, id_width = int(custom_size_height), int(custom_size_width)
+        # 如果选择了自定义尺寸(px或mm)
+        elif (
+            idphoto_json["size_mode"] == LOCALES["size_mode"][language]["choices"][2]
+            or idphoto_json["size_mode"] == LOCALES["size_mode"][language]["choices"][3]
+        ):
+            # 如果选择了自定义尺寸(px)
+            if (
+                idphoto_json["size_mode"]
+                == LOCALES["size_mode"][language]["choices"][2]
+            ):
+                id_height, id_width = int(custom_size_height), int(custom_size_width)
+            # 如果选择了自定义尺寸(mm)
+            else:
+                # 将mm转换为px
+                id_height = int(custom_size_height_mm / 25.4 * 300)
+                id_width = int(custom_size_width_mm / 25.4 * 300)
+            # 检查尺寸像素是否在100到1800之间
             if (
                 id_height < id_width
                 or min(id_height, id_width) < 100
@@ -172,9 +201,11 @@ class IDPhotoProcessor:
             ):
                 return self._create_error_response(language)
             idphoto_json["size"] = (id_height, id_width)
+        # 如果选择了只换底
         else:
             idphoto_json["size"] = (None, None)
 
+    # 处理颜色模式
     def _process_color_mode(
         self,
         idphoto_json,
@@ -183,18 +214,37 @@ class IDPhotoProcessor:
         custom_color_R,
         custom_color_G,
         custom_color_B,
+        custom_color_hex_value,
     ):
         """处理颜色模式"""
-        if idphoto_json["color_mode"] == LOCALES["bg_color"][language]["choices"][-1]:
+        # 如果选择了自定义颜色
+        if idphoto_json["color_mode"] == LOCALES["bg_color"][language]["choices"][-2]:
             idphoto_json["color_bgr"] = tuple(
                 map(range_check, [custom_color_R, custom_color_G, custom_color_B])
             )
+        elif idphoto_json["color_mode"] == LOCALES["bg_color"][language]["choices"][-1]:
+            hex_color = custom_color_hex_value
+            # 将十六进制颜色转换为RGB颜色，如果长度为6，则直接转换，如果长度为7，则去掉#号再转换
+            if len(hex_color) == 6:
+                idphoto_json["color_bgr"] = tuple(
+                    int(hex_color[i : i + 2], 16) for i in (0, 2, 4)
+                )
+            elif len(hex_color) == 7:
+                hex_color = hex_color[1:]
+                idphoto_json["color_bgr"] = tuple(
+                    int(hex_color[i : i + 2], 16) for i in (0, 2, 4)
+                )
+            else:
+                raise ValueError(
+                    "Invalid hex color. You can only use 6 or 7 characters. For example: #FFFFFF or FFFFFF"
+                )
         else:
             hex_color = LOCALES["bg_color"][language]["develop"][color_option]
             idphoto_json["color_bgr"] = tuple(
                 int(hex_color[i : i + 2], 16) for i in (0, 2, 4)
             )
 
+    # 生成证件照
     def _generate_id_photo(
         self,
         creator: IDCreator,
@@ -209,6 +259,7 @@ class IDPhotoProcessor:
         contrast_strength,
         sharpen_strength,
         saturation_strength,
+        face_alignment_option,
     ):
         """生成证件照"""
         change_bg_only = (
@@ -225,8 +276,10 @@ class IDPhotoProcessor:
             contrast_strength=contrast_strength,
             sharpen_strength=sharpen_strength,
             saturation_strength=saturation_strength,
+            face_alignment=face_alignment_option,
         )
 
+    # 处理照片生成错误
     def _handle_photo_generation_error(self, language):
         """处理照片生成错误"""
         return [gr.update(value=None) for _ in range(4)] + [
@@ -237,6 +290,7 @@ class IDPhotoProcessor:
             None,
         ]
 
+    # 处理生成的照片
     def _process_generated_photo(
         self,
         result,
@@ -260,20 +314,6 @@ class IDPhotoProcessor:
             result_image_standard, result_image_hd, idphoto_json
         )
 
-        # 生成排版照片
-        result_layout_image = self._generate_layout_image(
-            idphoto_json,
-            result_image_standard,
-            language,
-            watermark_option,
-            watermark_text,
-            watermark_text_size,
-            watermark_text_opacity,
-            watermark_text_angle,
-            watermark_text_space,
-            watermark_text_color,
-        )
-
         # 添加水印
         if watermark_option == LOCALES["watermark_switch"][language]["choices"][1]:
             result_image_standard, result_image_hd = self._add_watermark(
@@ -286,21 +326,61 @@ class IDPhotoProcessor:
                 watermark_text_space,
                 watermark_text_color,
             )
+        
+        # 生成排版照片
+        result_image_layout, result_image_layout_visible = self._generate_image_layout(
+            idphoto_json,
+            result_image_standard,
+            language,
+        )
+        
+        # 生成模板照片
+        result_image_template, result_image_template_visible = self._generate_image_template(
+            idphoto_json,
+            result_image_hd,
+            language,
+        )
 
         # 调整图片大小
-        output_image_path = self._resize_image_if_needed(
-            result_image_standard, idphoto_json
-        )
-
-        return self._create_response(
+        output_image_path_dict = self._resize_image_if_needed(
             result_image_standard,
             result_image_hd,
-            result_image_standard_png,
-            result_image_hd_png,
-            result_layout_image,
-            output_image_path,
+            result_image_layout,
+            idphoto_json,
         )
 
+        # 如果output_image_path_dict为None，
+        if output_image_path_dict is None:
+            return self._create_response(
+                result_image_standard,
+                result_image_hd,
+                result_image_standard_png,
+                result_image_hd_png,
+                gr.update(value=result_image_layout, visible=result_image_layout_visible),
+                gr.update(value=result_image_template, visible=result_image_template_visible),
+            )
+        else:
+            # 如果output_image_path_dict不为None，
+            if output_image_path_dict["layout"]["processed"]:
+                result_image_layout = output_image_path_dict["layout"]["path"]
+            return self._create_response(
+                (
+                    output_image_path_dict["standard"]["path"]
+                    if output_image_path_dict["standard"]["processed"]
+                    else result_image_standard
+                ),
+                (
+                    output_image_path_dict["hd"]["path"]
+                    if output_image_path_dict["hd"]["processed"]
+                    else result_image_hd    
+                ),
+                result_image_standard_png,
+                result_image_hd_png,
+                gr.update(value=result_image_layout, visible=result_image_layout_visible),
+                gr.update(value=result_image_template, visible=result_image_template_visible),
+            )
+
+    # 渲染背景
     def _render_background(self, result_image_standard, result_image_hd, idphoto_json):
         """渲染背景"""
         render_modes = {0: "pure_color", 1: "updown_gradient", 2: "center_gradient"}
@@ -319,51 +399,55 @@ class IDPhotoProcessor:
 
         return result_image_standard, result_image_hd
 
-    def _generate_layout_image(
+    # 生成排版照片
+    def _generate_image_layout(
         self,
         idphoto_json,
         result_image_standard,
         language,
-        watermark_option,
-        watermark_text,
-        watermark_text_size,
-        watermark_text_opacity,
-        watermark_text_angle,
-        watermark_text_space,
-        watermark_text_color,
     ):
         """生成排版照片"""
+        # 如果选择了只换底，则不生成排版照片
         if idphoto_json["size_mode"] in LOCALES["size_mode"][language]["choices"][1]:
-            return gr.update(visible=False)
+            return None, False
 
         typography_arr, typography_rotate = generate_layout_photo(
             input_height=idphoto_json["size"][0],
             input_width=idphoto_json["size"][1],
         )
-
-        image = result_image_standard
-        if watermark_option == LOCALES["watermark_switch"][language]["choices"][1]:
-            image = add_watermark(
-                image=image,
-                text=watermark_text,
-                size=watermark_text_size,
-                opacity=watermark_text_opacity,
-                angle=watermark_text_angle,
-                space=watermark_text_space,
-                color=watermark_text_color,
-            )
-
-        return gr.update(
-            value=generate_layout_image(
-                image,
-                typography_arr,
-                typography_rotate,
-                height=idphoto_json["size"][0],
-                width=idphoto_json["size"][1],
-            ),
-            visible=True,
+        
+        result_image_layout = generate_layout_image(
+            result_image_standard,
+            typography_arr,
+            typography_rotate,
+            height=idphoto_json["size"][0],
+            width=idphoto_json["size"][1],
         )
 
+        return result_image_layout, True
+
+    def _generate_image_template(
+        self,
+        idphoto_json,
+        result_image_hd,
+        language,
+    ):
+        # 如果选择了只换底，则不生成模板照片
+        if idphoto_json["size_mode"] in LOCALES["size_mode"][language]["choices"][1]:
+            return None, False
+        
+        TEMPLATE_NAME_LIST = ["template_1", "template_2"]
+        """生成模板照片"""
+        result_image_template_list = []
+        for template_name in TEMPLATE_NAME_LIST:
+            result_image_template = generte_template_photo(
+                template_name=template_name,
+                input_image=result_image_hd,
+            )
+            result_image_template_list.append(result_image_template)
+        return result_image_template_list, True
+
+    # 添加水印
     def _add_watermark(
         self,
         result_image_standard,
@@ -390,31 +474,95 @@ class IDPhotoProcessor:
         result_image_hd = add_watermark(image=result_image_hd, **watermark_params)
         return result_image_standard, result_image_hd
 
-    def _resize_image_if_needed(self, result_image_standard, idphoto_json):
+    def _resize_image_if_needed(
+        self,
+        result_image_standard,
+        result_image_hd,
+        result_image_layout,
+        idphoto_json,
+    ):
         """如果需要，调整图片大小"""
-        output_image_path = f"{os.path.join(os.path.dirname(os.path.dirname(__file__)), 'demo/kb_output')}/{int(time.time())}.jpg"
-        # 如果设置了自定义KB大小
-        if idphoto_json["custom_image_kb"]:
+        # 设置输出路径
+        base_path = os.path.join(
+            os.path.dirname(os.path.dirname(__file__)), "demo/kb_output"
+        )
+        timestamp = int(time.time())
+        output_paths = {
+            "standard": {
+                "path": f"{base_path}/{timestamp}_standard",
+                "processed": False,
+            },
+            "hd": {"path": f"{base_path}/{timestamp}_hd", "processed": False},
+            "layout": {"path": f"{base_path}/{timestamp}_layout", "processed": False},
+        }
+
+        # 获取自定义的KB和DPI值
+        custom_kb = idphoto_json.get("custom_image_kb")
+        custom_dpi = idphoto_json.get("custom_image_dpi", 300)
+
+        # 处理同时有自定义KB和DPI的情况
+        if custom_kb and custom_dpi:
+            # 为所有输出路径添加DPI信息
+            for key in output_paths:
+                output_paths[key]["path"] += f"_{custom_dpi}dpi.jpg"
+            # 为标准图像添加KB信息
+            output_paths["standard"]["path"] = output_paths["standard"]["path"].replace(
+                ".jpg", f"_{custom_kb}kb.jpg"
+            )
+
+            # 调整标准图像大小并保存
             resize_image_to_kb(
                 result_image_standard,
-                output_image_path,
-                idphoto_json["custom_image_kb"],
-                dpi=(
-                    idphoto_json["custom_image_dpi"]
-                    if idphoto_json["custom_image_dpi"]
-                    else 300
-                ),
+                output_paths["standard"]["path"],
+                custom_kb,
+                dpi=custom_dpi,
             )
-            return output_image_path
-        # 如果只设置了dpi
-        elif idphoto_json["custom_image_dpi"]:
+            output_paths["standard"]["processed"] = True
+            # 保存高清图像和排版图像
             save_image_dpi_to_bytes(
-                result_image_standard,
-                output_image_path,
-                dpi=idphoto_json["custom_image_dpi"],
+                result_image_hd, output_paths["hd"]["path"], dpi=custom_dpi
             )
-            return output_image_path
+            output_paths["hd"]["processed"] = True
+            if result_image_layout is not None:
+                save_image_dpi_to_bytes(
+                    result_image_layout, output_paths["layout"]["path"], dpi=custom_dpi
+                )
+                output_paths["layout"]["processed"] = True
 
+            return output_paths
+
+        # 只有自定义DPI的情况
+        elif custom_dpi:
+            for key in output_paths:
+                output_paths[key]["path"] += f"_{custom_dpi}dpi.jpg"
+                # 保存所有图像，使用自定义DPI
+                if key == "layout" and result_image_layout is None:
+                    pass
+                else:
+                    save_image_dpi_to_bytes(
+                        locals()[f"result_image_{key}"],
+                        output_paths[key]["path"],
+                        dpi=custom_dpi,
+                    )
+                    output_paths[key]["processed"] = True
+
+            return output_paths
+
+        # 只有自定义KB的情况
+        elif custom_kb:
+            output_paths["standard"]["path"] += f"_{custom_kb}kb.jpg"
+            # 只调整标准图像大小并保存
+            resize_image_to_kb(
+                result_image_standard,
+                output_paths["standard"]["path"],
+                custom_kb,
+                dpi=300,
+            )
+            output_paths["standard"]["processed"] = True
+
+            return output_paths
+
+        # 如果没有自定义设置，返回None
         return None
 
     def _create_response(
@@ -423,8 +571,8 @@ class IDPhotoProcessor:
         result_image_hd,
         result_image_standard_png,
         result_image_hd_png,
-        result_layout_image,
-        output_image_path,
+        result_layout_image_gr,
+        result_image_template_gr,
     ):
         """创建响应"""
         response = [
@@ -432,13 +580,11 @@ class IDPhotoProcessor:
             result_image_hd,
             result_image_standard_png,
             result_image_hd_png,
-            result_layout_image,
+            result_layout_image_gr,
+            result_image_template_gr,
             gr.update(visible=False),
         ]
-        if output_image_path:
-            response.append(gr.update(visible=True, value=output_image_path))
-        else:
-            response.append(gr.update(visible=False))
+
         return response
 
     def _create_error_response(self, language):
