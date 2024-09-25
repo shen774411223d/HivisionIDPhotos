@@ -182,22 +182,22 @@ LOCALES = {
     "bg_color": {
         "en": {
             "label": "Background color",
-            "choices": list(color_list_dict_EN.keys()) + ["Custom(RGB)", "Custom(HEX)"],
+            "choices": list(color_list_dict_EN.keys()) + ["American Style"] + ["Custom(RGB)", "Custom(HEX)"],
             "develop": color_list_dict_EN,
         },
         "zh": {
             "label": "背景颜色",
-            "choices": list(color_list_dict_CN.keys()) + ["自定义(RGB)", "自定义(HEX)"],
+            "choices": list(color_list_dict_CN.keys()) + ["美式证件照"] + ["自定义(RGB)", "自定义(HEX)"],
             "develop": color_list_dict_CN,
         },
         "ja": {
             "label": "背景色",
-            "choices": list(color_list_dict_EN.keys()) + ["カスタム(RGB)", "カスタム(HEX)"],
+            "choices": list(color_list_dict_EN.keys()) + ["American Style"] + ["カスタム(RGB)", "カスタム(HEX)"],
             "develop": color_list_dict_EN,
         },
         "ko": {
             "label": "배경색",
-            "choices": list(color_list_dict_EN.keys()) + ["사용자 지정(RGB)", "사용자 지정(HEX)"],
+            "choices": list(color_list_dict_EN.keys()) + ["American Style"] + ["사용자 지정(RGB)", "사용자 지정(HEX)"],
             "develop": color_list_dict_EN,
         },
     },
@@ -546,7 +546,7 @@ LOCALES = {
             "label": "Layout photo",
         },
         "zh": {
-            "label": "六寸排版照",
+            "label": "排版照",
         },
         "ja": {
             "label": "レイアウト写真",
@@ -667,22 +667,26 @@ LOCALES = {
             "label": "포화도 강도",
         },
     },
-    "face_alignment": {
+    "plugin": {
         "en": {
-            "label": "Face Alignment",
-            "choices": ["Open"],
+            "label": "🤖Plugin",
+            "choices": ["Face Alignment", "Layout Photo Crop Line", "JPEG Format", "Five Inch Paper"],
+            "value": ["Layout Photo Crop Line"]
         },
         "zh": {
-            "label": "人脸旋转对齐",
-            "choices": ["开启"],
+            "label": "🤖插件",
+            "choices": ["人脸旋转对齐", "排版照裁剪线", "JPEG格式", "五寸相纸"],
+            "value": ["排版照裁剪线"]
         },
         "ja": {
-            "label": "顔の整列",
-            "choices": ["開始"],
+            "label": "🤖プラグイン",
+            "choices": ["顔の整列", "レイアウト写真の切り取り線", "JPEGフォーマット", "五寸相紙"],
+            "value": ["レイアウト写真の切り取り線"]
         },
         "ko": {
-            "label": "얼굴 정렬",
-            "choices": ["시작"],
+            "label": "🤖플러그인",
+            "choices": ["얼굴 정렬", "레이아웃 사진 자르기 선", "JPEG 포맷", "오렌지 사진"],
+            "value": ["레이아웃 사진 자르기 선"]
         },
     },
     "template_photo": {

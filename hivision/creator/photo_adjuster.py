@@ -8,7 +8,7 @@ r"""
     证件照调整
 """
 from .context import Context
-from .layout_calculator import generate_layout_photo
+from .layout_calculator import generate_layout_array
 import hivision.creator.utils as U
 import numpy as np
 import math
@@ -111,7 +111,7 @@ def adjust_photo(ctx: Context):
     }
 
     # Step7. 排版照参数获取
-    typography_arr, typography_rotate = generate_layout_photo(
+    typography_arr, typography_rotate = generate_layout_array(
         input_height=standard_size[0], input_width=standard_size[1]
     )
 
@@ -173,7 +173,6 @@ def IDphotos_cut(x1, y1, x2, y2, img):
         temp_x_2 = temp_x_2 - x2
 
     # 生成一张全透明背景
-    print("crop_size:", crop_size)
     background_bgr = np.full((crop_size[0], crop_size[1]), 255, dtype=np.uint8)
     background_a = np.full((crop_size[0], crop_size[1]), 0, dtype=np.uint8)
     background = cv2.merge(

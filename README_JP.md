@@ -51,13 +51,13 @@
 
 - オンライン体験： [![SwanHub Demo](https://img.shields.io/static/v1?label=Demo&message=SwanHub%20Demo&color=blue)](https://swanhub.co/ZeYiLin/HivisionIDPhotos/demo)、[![Spaces](https://img.shields.io/badge/🤗-Open%20in%20Spaces-blue)](https://huggingface.co/spaces/TheEeeeLin/HivisionIDPhotos)、[![][modelscope-shield]][modelscope-link]
 
-- 2024.09.18: Gradioデモに**テンプレート写真の共有**機能を追加
+- 2024.09.24: APIインターフェースにbase64画像入力オプションを追加 | Gradioデモに**レイアウト写真トリミングライン**機能を追加
+- 2024.09.22: Gradioデモに**ビーストモード**と**DPI**パラメータを追加
+- 2024.09.18: Gradioデモに**テンプレート写真の共有**機能を追加、**米国式**背景オプションを追加
 - 2024.09.17: Gradioデモに**カスタム底色-HEX入力**機能を追加 | **（コミュニティ貢献）C++バージョン** - [HivisionIDPhotos-cpp](https://github.com/zjkhahah/HivisionIDPhotos-cpp) 貢献 by [zjkhahah](https://github.com/zjkhahah)
 - 2024.09.16: Gradioデモに**顔回転対応**機能を追加、カスタムサイズ入力に**ミリメートル**をサポート
 - 2024.09.14: Gradioデモに**カスタムDPI**機能を追加、日本語と韓国語を追加，**明るさ、コントラスト、鮮明度の調整**機能を追加
 - 2024.09.12: Gradioデモに**ホワイトニング**機能を追加 | APIインターフェースに**ウォーターマーク追加**、**写真のKBサイズ設定**、**証明写真のトリミング**を追加
-- 2024.09.11: Gradioデモに**透過画像表示とダウンロード**機能を追加しました。
-- 2024.09.09: 新しい**背景除去モデル** [BiRefNet-v1-lite](https://github.com/ZhengPeng7/BiRefNet) を追加 | Gradioに**高度なパラメータ設定**および**ウォーターマーク**タブを追加
 
 <br>
 
@@ -98,6 +98,10 @@ HivisionIDPhotoがあなたに役立つ場合は、このリポジトリをス�
 - [HivisionIDPhotos-wechat-weapp](https://github.com/no1xuan/HivisionIDPhotos-wechat-weapp)：WeChat証明写真ミニプログラム、HivisionIDphotosアルゴリズムに基づく、[no1xuan](https://github.com/no1xuan)による貢献
 
 [<img src="assets/community-wechat-miniprogram.png" width="900" alt="HivisionIDPhotos-wechat-weapp">](https://github.com/no1xuan/HivisionIDPhotos-wechat-weapp)
+
+- [HivisionIDPhotos-Uniapp](https://github.com/soulerror/HivisionIDPhotos-Uniapp)：基本のuniapp証明写真ミニプログラムの前部、HivisionIDphotosアルゴリズムに基づく、[soulerror](https://github.com/soulerror)による貢献
+
+[<img src="assets/community-uniapp-wechat-miniprogram.png" width="900" alt="HivisionIDPhotos-uniapp">](https://github.com/soulerror/HivisionIDPhotos-Uniapp)
 
 - [HivisionIDPhotos-cpp](https://github.com/zjkhahah/HivisionIDPhotos-cpp)：HivisionIDphotos C++バージョン、[zjkhahah](https://github.com/zjkhahah)によって構築
 - [HivisionIDPhotos-windows-GUI](https://github.com/zhaoyun0071/HivisionIDPhotos-windows-GUI)：Windowsクライアントアプリケーション、[zhaoyun0071](https://github.com/zhaoyun0071)によって構築
@@ -150,7 +154,17 @@ python scripts/download_model.py --models all
 | MTCNN | **オフライン**顔検出モデル、高性能CPU推論、デフォルトモデル、検出精度は低い | このプロジェクトをクローン後、直接使用 |
 | Face++ | Megviiが提供するオンライン顔検出API、高精度の検出、[公式文書](https://console.faceplusplus.com.cn/documents/4888373) | [使用文書](docs/face++_EN.md)|
 
-## 5. GPU推論の加速（オプション）
+## 5. パフォーマンスリファレンス
+
+> テスト環境はMac M1 Max 64GB、非GPU加速、テスト画像の解像度は512x715(1)と764×1146(2)。
+
+| モデルの組み合わせ | メモリ使用量 | 推論時間(1) | 推論時間(2) |
+| -- | -- | -- | -- |
+| MODNet + mtcnn | 410MB | 0.207秒 | 0.246秒 |
+| MODNet + retinaface | 405MB | 0.571秒 | 0.971秒 |
+| birefnet-v1-lite + retinaface | 6.20GB | 7.063秒 | 7.128秒 |
+
+## 6. GPU推論の加速（オプション）
 
 現在のバージョンでは、NVIDIA GPUで加速可能なモデルは`birefnet-v1-lite`です。約16GBのVRAMが必要であることにご注意ください。
 
@@ -248,8 +262,6 @@ python deploy_api.py
 詳細なリクエスト方法は[APIドキュメント](docs/api_EN.md)を参照してください。以下のリクエスト例が含まれます：
 - [cURL](docs/api_EN.md#curl-request-examples)
 - [Python](docs/api_EN.md#python-request-example)
-- [Java](docs/api_EN.md#java-request-example)
-- [Javascript](docs/api_EN.md#javascript-request-examples)
 
 <br>
 
@@ -350,17 +362,29 @@ docker run  -d -p 7860:7860 \
 
 <br>
 
-# 💻 開発のヒント
+# よくある質問 (FAQ)
 
-## どのようにデフォルトのサイズと色を変更しますか？
+## 1. 基本的なサイズと色をどのように変更しますか？
 
-- サイズ：`size_list_EN.csv`を修正した後、再度`app.py`を実行すれば、第一列がサイズ名、第二列が高さ、第三列が幅になります。
-- 色：`color_list_EN.csv`を修正した後、再度`app.py`を実行すれば、第一列が色名、第二列がHex値になります。
+- サイズ: [size_list_EN.csv](demo/assets/size_list_EN.csv) ファイルを修正した後、`app.py`を再実行すれば大丈夫です。最初の列はサイズ名、二番目の列は高さ、三番目の列は幅です。
+- 色: [color_list_EN.csv](demo/assets/color_list_EN.csv) ファイルを修正した後、`app.py`を再実行すれば大丈夫です。最初の列は色名、二番目の列はHex値です。
 
-## ウォーターマークフォントの変更方法
+## 2. ウォーターマークのフォントをどのように変更しますか？
 
-1. フォントファイルを `hivision/plugin/font` フォルダーに配置します。
-2. `hivision/plugin/watermark.py` の `font_file` パラメータの値をフォントファイルの名前に変更します。
+1. フォントファイルを`hivision/plugin/font`フォルダーに置きます。
+2. `hivision/plugin/watermark.py`ファイル内の`font_file`パラメータの値をフォントファイル名に変更します。
+
+## 3. ソーシャルメディアのテンプレート画像をどのように追加しますか？
+
+1. テンプレート画像を`hivision/plugin/template/assets`フォルダーに置きます。テンプレート画像は4チャンネルの透明PNGです。
+2. `hivision/plugin/template/assets/template_config.json`ファイルに最新のテンプレート情報を追加します。ここで`width`はテンプレート画像の幅(px)、`height`はテンプレート画像の高さ(px)、`anchor_points`はテンプレートの透明領域の4つの隅の座標(px)です。`rotation`は透明領域の垂直方向に対する回転角度で、>0は反時計回り、<0は時計回りです。
+3. `demo/processor.py`の`_generate_image_template`関数内の`TEMPLATE_NAME_LIST`変数に最新のテンプレート名を追加します。
+
+<img src="assets/social_template.png" width="500">
+
+## 4. Gradio Demoの上部ナビゲーションバーをどのように変更しますか？
+
+- `demo/assets/title.md`ファイルを修正します。
 
 <br>
 
