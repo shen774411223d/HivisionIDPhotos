@@ -28,3 +28,6 @@ test/temp/*
 # Ignore .png and .jpg files in the root directory
 /*.png
 /*.jpg
+
+# generate image output
+demo/output
