@@ -1,4 +1,4 @@
-from fastapi import FastAPI, UploadFile, Form, File
+from fastapi import FastAPI, UploadFile, Form, File, Request
 from hivision import IDCreator
 from hivision.error import FaceError
 from hivision.creator.layout_calculator import (
@@ -35,6 +35,12 @@ app.add_middleware(
 )
 
 
+# py服务心跳接口
+@app.get("/health")
+def health_inference():
+    return {"data": None, "error": {"msg": "ok", "ret": 1}}
+
+
 # 证件照智能制作接口
 @app.post("/idphoto")
 async def idphoto_inference(
@@ -51,7 +57,7 @@ async def idphoto_inference(
     head_height_ratio: float = 0.45,
     top_distance_max: float = 0.12,
     top_distance_min: float = 0.10,
-):  
+):
     # 如果传入了base64，则直接使用base64解码
     if input_image_base64:
         img = base64_2_numpy(input_image_base64)
@@ -79,8 +85,10 @@ async def idphoto_inference(
         result_message = {"status": False}
     # 如果检测到人脸数量等于1, 则返回标准证和高清照结果（png 4通道图像）
     else:
-        result_image_standard_bytes = save_image_dpi_to_bytes(cv2.cvtColor(result.standard, cv2.COLOR_RGBA2BGRA), None, dpi)
-        
+        result_image_standard_bytes = save_image_dpi_to_bytes(
+            cv2.cvtColor(result.standard, cv2.COLOR_RGBA2BGRA), None, dpi
+        )
+
         result_message = {
             "status": True,
             "image_base64_standard": bytes_2_base64(result_image_standard_bytes),
@@ -88,7 +96,9 @@ async def idphoto_inference(
 
         # 如果hd为True, 则增加高清照结果（png 4通道图像）
         if hd:
-            result_image_hd_bytes = save_image_dpi_to_bytes(cv2.cvtColor(result.hd, cv2.COLOR_RGBA2BGRA), None, dpi)
+            result_image_hd_bytes = save_image_dpi_to_bytes(
+                cv2.cvtColor(result.hd, cv2.COLOR_RGBA2BGRA), None, dpi
+            )
             result_message["image_base64_hd"] = bytes_2_base64(result_image_hd_bytes)
 
     return result_message
@@ -121,7 +131,9 @@ async def human_matting_inference(
         result_message = {"status": False}
 
     else:
-        result_image_standard_bytes = save_image_dpi_to_bytes(cv2.cvtColor(result.standard, cv2.COLOR_RGBA2BGRA), None, dpi)
+        result_image_standard_bytes = save_image_dpi_to_bytes(
+            cv2.cvtColor(result.standard, cv2.COLOR_RGBA2BGRA), None, dpi
+        )
         result_message = {
             "status": True,
             "image_base64": bytes_2_base64(result_image_standard_bytes),
@@ -205,8 +217,10 @@ async def generate_layout_photos(
             result_layout_image, None, int(kb), dpi=dpi
         )
     else:
-        result_layout_image_bytes = save_image_dpi_to_bytes(result_layout_image, None, dpi=dpi)
-        
+        result_layout_image_bytes = save_image_dpi_to_bytes(
+            result_layout_image, None, dpi=dpi
+        )
+
     result_layout_image_base64 = bytes_2_base64(result_layout_image_bytes)
 
     result_messgae = {
@@ -243,7 +257,9 @@ async def watermark(
 
         result_image = cv2.cvtColor(result_image, cv2.COLOR_RGB2BGR)
         if kb:
-            result_image_bytes = resize_image_to_kb(result_image, None, int(kb), dpi=dpi)
+            result_image_bytes = resize_image_to_kb(
+                result_image, None, int(kb), dpi=dpi
+            )
         else:
             result_image_bytes = save_image_dpi_to_bytes(result_image, None, dpi=dpi)
         result_image_base64 = bytes_2_base64(result_image_bytes)
@@ -334,8 +350,10 @@ async def idphoto_crop_inference(
         result_message = {"status": False}
     # 如果检测到人脸数量等于1, 则返回标准证和高清照结果（png 4通道图像）
     else:
-        result_image_standard_bytes = save_image_dpi_to_bytes(cv2.cvtColor(result.standard, cv2.COLOR_RGBA2BGRA), None, dpi)
-        
+        result_image_standard_bytes = save_image_dpi_to_bytes(
+            cv2.cvtColor(result.standard, cv2.COLOR_RGBA2BGRA), None, dpi
+        )
+
         result_message = {
             "status": True,
             "image_base64_standard": bytes_2_base64(result_image_standard_bytes),
@@ -343,7 +361,9 @@ async def idphoto_crop_inference(
 
         # 如果hd为True, 则增加高清照结果（png 4通道图像）
         if hd:
-            result_image_hd_bytes = save_image_dpi_to_bytes(cv2.cvtColor(result.hd, cv2.COLOR_RGBA2BGRA), None, dpi)
+            result_image_hd_bytes = save_image_dpi_to_bytes(
+                cv2.cvtColor(result.hd, cv2.COLOR_RGBA2BGRA), None, dpi
+            )
             result_message["image_base64_hd"] = bytes_2_base64(result_image_hd_bytes)
 
     return result_message
@@ -352,5 +372,5 @@ async def idphoto_crop_inference(
 if __name__ == "__main__":
     import uvicorn
 
-    # 在8080端口运行推理服务
-    uvicorn.run(app, host="0.0.0.0", port=8080)
+    # 在9002端口运行推理服务
+    uvicorn.run(app, host="0.0.0.0", port=9002)
