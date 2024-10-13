@@ -2,7 +2,6 @@
 
 [English](api_EN.md) / 中文
 
-
 ## 目录
 
 - [开始之前：开启后端服务](#开始之前开启后端服务)
@@ -12,8 +11,9 @@
   - [3.生成六寸排版照](#3生成六寸排版照)
   - [4.人像抠图](#4人像抠图)
   - [5.图像加水印](#5图像加水印)
-  - [6.设置图像KB大小](#6设置图像KB大小)
+  - [6.设置图像 KB 大小](#6设置图像KB大小)
   - [7.证件照裁切](#7证件照裁切)
+  - [8.集成背景色,排版接口](#8集成背景色,排版接口)
 - [cURL 请求示例](#curl-请求示例)
 - [Python 请求示例](#python-请求示例)
 
@@ -45,30 +45,29 @@ python deploy_api.py
 
 **请求参数：**
 
-| 参数名 | 类型 | 必填 | 说明 |
-| :--- | :--- | :--- | :--- |
-| input_image | file | 和`input_image_base64`二选一 | 传入的图像文件，图像文件为需为RGB三通道图像。 |
-| input_image_base64 | str | 和`input_image`二选一 | 传入的图像文件的base64编码，图像文件为需为RGB三通道图像。 |
-| height | int | 否 | 标准证件照高度，默认为`413` |
-| width | int | 否 | 标准证件照宽度，默认为`295` |
-| human_matting_model | str | 否 | 人像分割模型，默认为`modnet_photographic_portrait_matting`。可选值为`modnet_photographic_portrait_matting`、`hivision_modnet`、`rmbg-1.4`、`birefnet-v1-lite` |
-| face_detect_model | str | 否 | 人脸检测模型，默认为`mtcnn`。可选值为`mtcnn`、`face_plusplus`、`retinaface-resnet50` |
-| hd | bool | 否 | 是否生成高清证件照，默认为`true` |
-| dpi | int | 否 | 图像分辨率，默认为`300` |
-| face_alignment | bool | 否 | 是否进行人脸对齐，默认为`true` |
-| head_measure_ratio | float | 否 | 面部面积与照片面积的比例，默认为`0.2` |
-| head_height_ratio | float | 否 | 面部中心与照片顶部的高度比例，默认为`0.45` |
-| top_distance_max | float | 否 | 头部与照片顶部距离的比例最大值，默认为`0.12` |
-| top_distance_min | float | 否 | 头部与照片顶部距离的比例最小值，默认为`0.1` |
-
+| 参数名              | 类型  | 必填                         | 说明                                                                                                                                                          |
+| :------------------ | :---- | :--------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| input_image         | file  | 和`input_image_base64`二选一 | 传入的图像文件，图像文件为需为 RGB 三通道图像。                                                                                                               |
+| input_image_base64  | str   | 和`input_image`二选一        | 传入的图像文件的 base64 编码，图像文件为需为 RGB 三通道图像。                                                                                                 |
+| height              | int   | 否                           | 标准证件照高度，默认为`413`                                                                                                                                   |
+| width               | int   | 否                           | 标准证件照宽度，默认为`295`                                                                                                                                   |
+| human_matting_model | str   | 否                           | 人像分割模型，默认为`modnet_photographic_portrait_matting`。可选值为`modnet_photographic_portrait_matting`、`hivision_modnet`、`rmbg-1.4`、`birefnet-v1-lite` |
+| face_detect_model   | str   | 否                           | 人脸检测模型，默认为`mtcnn`。可选值为`mtcnn`、`face_plusplus`、`retinaface-resnet50`                                                                          |
+| hd                  | bool  | 否                           | 是否生成高清证件照，默认为`true`                                                                                                                              |
+| dpi                 | int   | 否                           | 图像分辨率，默认为`300`                                                                                                                                       |
+| face_align          | bool  | 否                           | 是否进行人脸对齐，默认为`true`                                                                                                                                |
+| head_measure_ratio  | float | 否                           | 面部面积与照片面积的比例，默认为`0.2`                                                                                                                         |
+| head_height_ratio   | float | 否                           | 面部中心与照片顶部的高度比例，默认为`0.45`                                                                                                                    |
+| top_distance_max    | float | 否                           | 头部与照片顶部距离的比例最大值，默认为`0.12`                                                                                                                  |
+| top_distance_min    | float | 否                           | 头部与照片顶部距离的比例最小值，默认为`0.1`                                                                                                                   |
 
 **返回参数：**
 
-| 参数名 | 类型 | 说明 |
-| :--- | :--- | :--- |
-| status | int | 状态码，`true`表示成功 |
-| image_base64_standard | str | 标准证件照的base64编码 |
-| image_base64_hd | str | 高清证件照的base64编码。如`hd`参数为`false`，则不返回该参数 |
+| 参数名                | 类型 | 说明                                                          |
+| :-------------------- | :--- | :------------------------------------------------------------ |
+| status                | int  | 状态码，`true`表示成功                                        |
+| image_base64_standard | str  | 标准证件照的 base64 编码                                      |
+| image_base64_hd       | str  | 高清证件照的 base64 编码。如`hd`参数为`false`，则不返回该参数 |
 
 <br>
 
@@ -80,21 +79,21 @@ python deploy_api.py
 
 **请求参数：**
 
-| 参数名 | 类型 | 必填 | 说明 |
-| :--- | :--- | :--- | :--- |
-| input_image | file | 和`input_image_base64`二选一 | 传入的图像文件，图像文件为需为RGBA四通道图像。 |
-| input_image_base64 | str | 和`input_image`二选一 | 传入的图像文件的base64编码，图像文件为需为RGBA四通道图像。 |
-| color | str | 否 | 背景色HEX值，默认为`000000` |
-| kb | int | 否 | 输出照片的 KB 值，默认为`None`，即不对图像进行KB调整。|
-| render | int | 否 | 渲染模式，默认为`0`。可选值为`0`、`1`、`2`，分别对应`纯色`、`上下渐变`、`中心渐变`。 |
-| dpi | int | 否 | 图像分辨率，默认为`300` |
+| 参数名             | 类型 | 必填                         | 说明                                                                                 |
+| :----------------- | :--- | :--------------------------- | :----------------------------------------------------------------------------------- |
+| input_image        | file | 和`input_image_base64`二选一 | 传入的图像文件，图像文件为需为 RGBA 四通道图像。                                     |
+| input_image_base64 | str  | 和`input_image`二选一        | 传入的图像文件的 base64 编码，图像文件为需为 RGBA 四通道图像。                       |
+| color              | str  | 否                           | 背景色 HEX 值，默认为`000000`                                                        |
+| kb                 | int  | 否                           | 输出照片的 KB 值，默认为`None`，即不对图像进行 KB 调整。                             |
+| render             | int  | 否                           | 渲染模式，默认为`0`。可选值为`0`、`1`、`2`，分别对应`纯色`、`上下渐变`、`中心渐变`。 |
+| dpi                | int  | 否                           | 图像分辨率，默认为`300`                                                              |
 
 **返回参数：**
 
-| 参数名 | 类型 | 说明 |
-| :--- | :--- | :--- |
-| status | int | 状态码，`true`表示成功 |
-| image_base64 | str | 添加背景色之后的图像的base64编码 |
+| 参数名       | 类型 | 说明                               |
+| :----------- | :--- | :--------------------------------- |
+| status       | int  | 状态码，`true`表示成功             |
+| image_base64 | str  | 添加背景色之后的图像的 base64 编码 |
 
 <br>
 
@@ -106,21 +105,21 @@ python deploy_api.py
 
 **请求参数：**
 
-| 参数名 | 类型 | 必填 | 说明 |
-| :--- | :--- | :--- | :--- |
-| input_image | file | 和`input_image_base64`二选一 | 传入的图像文件，图像文件为需为RGB三通道图像。 |
-| input_image_base64 | str | 和`input_image`二选一 | 传入的图像文件的base64编码，图像文件为需为RGB三通道图像。 |
-| height | int | 否 | 输入图像的高度，默认为`413` |
-| width | int | 否 | 输入图像的宽度，默认为`295` |
-| kb | int | 否 | 输出照片的 KB 值，默认为`None`，即不对图像进行KB调整。|
-| dpi | int | 否 | 图像分辨率，默认为`300` |
+| 参数名             | 类型 | 必填                         | 说明                                                          |
+| :----------------- | :--- | :--------------------------- | :------------------------------------------------------------ |
+| input_image        | file | 和`input_image_base64`二选一 | 传入的图像文件，图像文件为需为 RGB 三通道图像。               |
+| input_image_base64 | str  | 和`input_image`二选一        | 传入的图像文件的 base64 编码，图像文件为需为 RGB 三通道图像。 |
+| height             | int  | 否                           | 输入图像的高度，默认为`413`                                   |
+| width              | int  | 否                           | 输入图像的宽度，默认为`295`                                   |
+| kb                 | int  | 否                           | 输出照片的 KB 值，默认为`None`，即不对图像进行 KB 调整。      |
+| dpi                | int  | 否                           | 图像分辨率，默认为`300`                                       |
 
 **返回参数：**
 
-| 参数名 | 类型 | 说明 |
-| :--- | :--- | :--- |
-| status | int | 状态码，`true`表示成功 |
-| image_base64 | str | 六寸排版照的base64编码 |
+| 参数名       | 类型 | 说明                     |
+| :----------- | :--- | :----------------------- |
+| status       | int  | 状态码，`true`表示成功   |
+| image_base64 | str  | 六寸排版照的 base64 编码 |
 
 <br>
 
@@ -132,18 +131,18 @@ python deploy_api.py
 
 **请求参数：**
 
-| 参数名 | 类型 | 必填 | 说明 |
-| :--- | :--- | :--- | :--- |
-| input_image | file | 是 | 传入的图像文件，图像文件为需为RGB三通道图像。 |
-| human_matting_model | str | 否 | 人像分割模型，默认为`modnet_photographic_portrait_matting`。可选值为`modnet_photographic_portrait_matting`、`hivision_modnet`、`rmbg-1.4`、`birefnet-v1-lite` |
-| dpi | int | 否 | 图像分辨率，默认为`300` |
+| 参数名              | 类型 | 必填 | 说明                                                                                                                                                          |
+| :------------------ | :--- | :--- | :------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| input_image         | file | 是   | 传入的图像文件，图像文件为需为 RGB 三通道图像。                                                                                                               |
+| human_matting_model | str  | 否   | 人像分割模型，默认为`modnet_photographic_portrait_matting`。可选值为`modnet_photographic_portrait_matting`、`hivision_modnet`、`rmbg-1.4`、`birefnet-v1-lite` |
+| dpi                 | int  | 否   | 图像分辨率，默认为`300`                                                                                                                                       |
 
 **返回参数：**
 
-| 参数名 | 类型 | 说明 |
-| :--- | :--- | :--- |
-| status | int | 状态码，`true`表示成功 |
-| image_base64 | str | 抠图人像照的base64编码 |
+| 参数名       | 类型 | 说明                     |
+| :----------- | :--- | :----------------------- |
+| status       | int  | 状态码，`true`表示成功   |
+| image_base64 | str  | 抠图人像照的 base64 编码 |
 
 <br>
 
@@ -155,48 +154,48 @@ python deploy_api.py
 
 **请求参数：**
 
-| 参数名 | 类型 | 必填 | 说明 |
-| :--- | :--- | :--- | :--- |
-| input_image | file | 和`input_image_base64`二选一 | 传入的图像文件，图像文件为需为RGB三通道图像。 |
-| input_image_base64 | str | 和`input_image`二选一 | 传入的图像文件的base64编码，图像文件为需为RGB三通道图像。 |
-| text | str | 否 | 水印文本，默认为`Hello` |
-| size | int | 否 | 水印字体大小，默认为`20` |
-| opacity | float | 否 | 水印透明度，默认为`0.5` |
-| angle | int | 否 | 水印旋转角度，默认为`30` |
-| color | str | 否 | 水印颜色，默认为`#000000` |
-| space | int | 否 | 水印间距，默认为`25` |
-| dpi | int | 否 | 图像分辨率，默认为`300` |
+| 参数名             | 类型  | 必填                         | 说明                                                          |
+| :----------------- | :---- | :--------------------------- | :------------------------------------------------------------ |
+| input_image        | file  | 和`input_image_base64`二选一 | 传入的图像文件，图像文件为需为 RGB 三通道图像。               |
+| input_image_base64 | str   | 和`input_image`二选一        | 传入的图像文件的 base64 编码，图像文件为需为 RGB 三通道图像。 |
+| text               | str   | 否                           | 水印文本，默认为`Hello`                                       |
+| size               | int   | 否                           | 水印字体大小，默认为`20`                                      |
+| opacity            | float | 否                           | 水印透明度，默认为`0.5`                                       |
+| angle              | int   | 否                           | 水印旋转角度，默认为`30`                                      |
+| color              | str   | 否                           | 水印颜色，默认为`#000000`                                     |
+| space              | int   | 否                           | 水印间距，默认为`25`                                          |
+| dpi                | int   | 否                           | 图像分辨率，默认为`300`                                       |
 
 **返回参数：**
 
-| 参数名 | 类型 | 说明 |
-| :--- | :--- | :--- |
-| status | int | 状态码，`true`表示成功 |
-| image_base64 | str | 添加水印之后的图像的base64编码 |
+| 参数名       | 类型 | 说明                             |
+| :----------- | :--- | :------------------------------- |
+| status       | int  | 状态码，`true`表示成功           |
+| image_base64 | str  | 添加水印之后的图像的 base64 编码 |
 
 <br>
 
-### 6.设置图像KB大小
+### 6.设置图像 KB 大小
 
 接口名：`set_kb`
 
-`设置图像KB大小`接口的功能是接收一张图像和目标文件大小（以KB为单位），如果设置的KB值小于原文件，则调整压缩率；如果设置的KB值大于源文件，则通过给文件头添加信息的方式调大KB值，目标是让图像的最终大小与设置的KB值一致。
+`设置图像KB大小`接口的功能是接收一张图像和目标文件大小（以 KB 为单位），如果设置的 KB 值小于原文件，则调整压缩率；如果设置的 KB 值大于源文件，则通过给文件头添加信息的方式调大 KB 值，目标是让图像的最终大小与设置的 KB 值一致。
 
 **请求参数：**
 
-| 参数名 | 类型 | 必填 | 说明 |
-| :--- | :--- | :--- | :--- |
-| input_image | file | 和`input_image_base64`二选一 | 传入的图像文件，图像文件为需为RGB三通道图像。 |
-| input_image_base64 | str | 和`input_image`二选一 | 传入的图像文件的base64编码，图像文件为需为RGB三通道图像。 |
-| kb | int | 否 | 输出照片的 KB 值，默认为`None`，即不对图像进行KB调整。|
-| dpi | int | 否 | 图像分辨率，默认为`300` |
+| 参数名             | 类型 | 必填                         | 说明                                                          |
+| :----------------- | :--- | :--------------------------- | :------------------------------------------------------------ |
+| input_image        | file | 和`input_image_base64`二选一 | 传入的图像文件，图像文件为需为 RGB 三通道图像。               |
+| input_image_base64 | str  | 和`input_image`二选一        | 传入的图像文件的 base64 编码，图像文件为需为 RGB 三通道图像。 |
+| kb                 | int  | 否                           | 输出照片的 KB 值，默认为`None`，即不对图像进行 KB 调整。      |
+| dpi                | int  | 否                           | 图像分辨率，默认为`300`                                       |
 
 **返回参数：**
 
-| 参数名 | 类型 | 说明 |
-| :--- | :--- | :--- |
-| status | int | 状态码，`true`表示成功 |
-| image_base64 | str | 设置KB大小之后的图像的base64编码 |
+| 参数名       | 类型 | 说明                                 |
+| :----------- | :--- | :----------------------------------- |
+| status       | int  | 状态码，`true`表示成功               |
+| image_base64 | str  | 设置 KB 大小之后的图像的 base64 编码 |
 
 <br>
 
@@ -208,27 +207,68 @@ python deploy_api.py
 
 **请求参数：**
 
-| 参数名 | 类型 | 必填 | 说明 |
-| :--- | :--- | :--- | :--- |
-| input_image | file | 和`input_image_base64`二选一 | 传入的图像文件，图像文件为需为RGBA四通道图像。 |
-| input_image_base64 | str | 和`input_image`二选一 | 传入的图像文件的base64编码，图像文件为需为RGBA四通道图像。 |
-| height | int | 否 | 标准证件照高度，默认为`413` |
-| width | int | 否 | 标准证件照宽度，默认为`295` |
-| face_detect_model | str | 否 | 人脸检测模型，默认为`mtcnn`。可选值为`mtcnn`、`face_plusplus`、`retinaface-resnet50` |
-| hd | bool | 否 | 是否生成高清证件照，默认为`true` |
-| dpi | int | 否 | 图像分辨率，默认为`300` |
-| head_measure_ratio | float | 否 | 面部面积与照片面积的比例，默认为`0.2` |
-| head_height_ratio | float | 否 | 面部中心与照片顶部的高度比例，默认为`0.45` |
-| top_distance_max | float | 否 | 头部与照片顶部距离的比例最大值，默认为`0.12` |
-| top_distance_min | float | 否 | 头部与照片顶部距离的比例最小值，默认为`0.1` |
+| 参数名             | 类型  | 必填                         | 说明                                                                                 |
+| :----------------- | :---- | :--------------------------- | :----------------------------------------------------------------------------------- |
+| input_image        | file  | 和`input_image_base64`二选一 | 传入的图像文件，图像文件为需为 RGBA 四通道图像。                                     |
+| input_image_base64 | str   | 和`input_image`二选一        | 传入的图像文件的 base64 编码，图像文件为需为 RGBA 四通道图像。                       |
+| height             | int   | 否                           | 标准证件照高度，默认为`413`                                                          |
+| width              | int   | 否                           | 标准证件照宽度，默认为`295`                                                          |
+| face_detect_model  | str   | 否                           | 人脸检测模型，默认为`mtcnn`。可选值为`mtcnn`、`face_plusplus`、`retinaface-resnet50` |
+| hd                 | bool  | 否                           | 是否生成高清证件照，默认为`true`                                                     |
+| dpi                | int   | 否                           | 图像分辨率，默认为`300`                                                              |
+| head_measure_ratio | float | 否                           | 面部面积与照片面积的比例，默认为`0.2`                                                |
+| head_height_ratio  | float | 否                           | 面部中心与照片顶部的高度比例，默认为`0.45`                                           |
+| top_distance_max   | float | 否                           | 头部与照片顶部距离的比例最大值，默认为`0.12`                                         |
+| top_distance_min   | float | 否                           | 头部与照片顶部距离的比例最小值，默认为`0.1`                                          |
 
 **返回参数：**
 
-| 参数名 | 类型 | 说明 |
-| :--- | :--- | :--- |
-| status | int | 状态码，`true`表示成功 |
-| image_base64 | str | 证件照裁切之后的图像的base64编码 |
-| image_base64_hd | str | 高清证件照裁切之后的图像的base64编码，如`hd`参数为`false`，则不返回该参数 |
+| 参数名          | 类型 | 说明                                                                        |
+| :-------------- | :--- | :-------------------------------------------------------------------------- |
+| status          | int  | 状态码，`true`表示成功                                                      |
+| image_base64    | str  | 证件照裁切之后的图像的 base64 编码                                          |
+| image_base64_hd | str  | 高清证件照裁切之后的图像的 base64 编码，如`hd`参数为`false`，则不返回该参数 |
+
+<br>
+
+### 8.集成背景色,排版接口
+
+接口名：`generate-idphoto-task`
+
+用一个接口集合了其他几个接口的功能,包括: 获得透明底人像,添加人像背景色(分别给普通和高清添加背景色),排版。
+
+**请求参数：**
+
+| 参数名              | 类型  | 必填                         | 说明                                                                              |
+| :------------------ | :---- | :--------------------------- | :-------------------------------------------------------------------------------- |
+| input_image_url     | file  | 和`input_image_base64`二选一 | 传入的网络图片                                                                    |
+| input_image_base64  | str   | 和`input_image`二选一        | 传入的图像文件的 base64 编码，图像文件需为 RGBA 四通道图像                        |
+| height              | int   | 否                           | 标准证件照高度，默认为`413`                                                       |
+| width               | int   | 否                           | 标准证件照宽度，默认为`295`                                                       |
+| human_matting_model | str   | 否                           | 人像分割模型，默认为`modnet_photographic_portrait_matting`                        |
+| face_detect_model   | str   | 否                           | 人脸检测模型，默认为`mtcnn`                                                       |
+| hd                  | bool  | 否                           | 是否生成高清证件照，默认为`true`                                                  |
+| dpi                 | int   | 否                           | 图像分辨率，默认为`300`                                                           |
+| face_align          | bool  | 否                           | 是否进行人脸对齐，默认为`true`                                                    |
+| head_measure_ratio  | float | 否                           | 面部面积与照片面积的比例，默认为`0.2`                                             |
+| head_height_ratio   | float | 否                           | 面部中心与照片顶部的高度比例，默认为`0.45`                                        |
+| top_distance_max    | float | 否                           | 头部与照片顶部距离的比例最大值，默认为`0.12`                                      |
+| top_distance_min    | float | 否                           | 头部与照片顶部距离的比例最小值，默认为`0.1`                                       |
+| kb                  | int   | 否                           | 输出照片的 KB 值，默认为 None，即不对图像进行 KB 调整                             |
+| color               | str   | 是                           | 对人像添加的背景颜色值，为 **hex** 类型                                           |
+| render              | int   | 否                           | 渲染模式，默认为 0。可选值为`0`、`1`、`2`，分别对应`纯色`、`上下渐变`、`中心渐变` |
+
+**返回参数：**
+
+| 字段名称            | 类型  | 描述                                                                                                  |
+| :------------------ | :---- | :---------------------------------------------------------------------------------------------------- |
+| time_consuming      | float | 任务生成时长                                                                                          |
+| status              | bool  | 透明图，带背景图，排版图的生成状态，必须每一个接口返回`True` 这个状态才返回`True` 有一个则返回`False` |
+| idphoto_standard    | str   | 透明图标准版本的 Base64 编码字符串                                                                    |
+| idphoto_hd          | str   | 透明图高清版本的 Base64 编码字符串                                                                    |
+| idphoto_bg_standard | str   | 带背景图标准版本的 Base64 编码字符串                                                                  |
+| idphoto_bg_hd       | str   | 带背景图高清版本的 Base64 编码字符串                                                                  |
+| layout_idphoto      | str   | 排版图的 Base64 编码字符串                                                                            |
 
 <br>
 
@@ -247,7 +287,7 @@ curl -X POST "http://127.0.0.1:8080/idphoto" \
 -F "face_detect_model=mtcnn" \
 -F "hd=true" \
 -F "dpi=300" \
--F "face_alignment=true"
+-F "face_align=true"
 ```
 
 ### 2. 添加背景色
@@ -282,6 +322,7 @@ curl -X POST "http://127.0.0.1:8080/human_matting" \
 ```
 
 ### 5. 图片加水印
+
 ```bash
 curl -X 'POST' \
   'http://127.0.0.1:8080/watermark?size=20&opacity=0.5&angle=30&color=%23000000&space=25' \
@@ -292,7 +333,8 @@ curl -X 'POST' \
   -F 'dpi=300'
 ```
 
-### 6. 设置图像KB大小
+### 6. 设置图像 KB 大小
+
 ```bash
 curl -X 'POST' \
   'http://127.0.0.1:8080/set_kb' \
@@ -304,6 +346,7 @@ curl -X 'POST' \
 ```
 
 ### 7. 证件照裁切
+
 ```bash
 curl -X 'POST' \
   'http://127.0.0.1:8080/idphoto_crop?head_measure_ratio=0.2&head_height_ratio=0.45&top_distance_max=0.12&top_distance_min=0.1' \
@@ -322,6 +365,7 @@ curl -X 'POST' \
 ## Python 请求示例
 
 #### 1.生成证件照(底透明)
+
 ```python
 import requests
 
@@ -343,7 +387,7 @@ data = {
     "face_detect_model": "mtcnn",
     "hd": True,
     "dpi": 300,
-    "face_alignment": True,
+    "face_align": True,
 }
 
 response = requests.post(url, params=params, files=files, data=data).json()
@@ -448,7 +492,7 @@ else:
     print(f"Request failed with status code {response.status_code}: {response.text}")
 ```
 
-### 6. 设置图像KB大小
+### 6. 设置图像 KB 大小
 
 ```python
 import requests

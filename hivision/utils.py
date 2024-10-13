@@ -6,9 +6,12 @@ import numpy as np
 import cv2
 import base64
 from hivision.plugin.watermark import Watermarker, WatermarkerStyles
+from operator import itemgetter
 
 
-def save_image_dpi_to_bytes(image: np.ndarray, output_image_path: str = None, dpi: int = 300):
+def save_image_dpi_to_bytes(
+    image: np.ndarray, output_image_path: str = None, dpi: int = 300
+):
     """
     设置图像的DPI（每英寸点数）并返回字节流
 
@@ -32,7 +35,12 @@ def save_image_dpi_to_bytes(image: np.ndarray, output_image_path: str = None, dp
     return image_bytes
 
 
-def resize_image_to_kb(input_image: np.ndarray, output_image_path: str = None, target_size_kb: int = 100, dpi: int = 300):
+def resize_image_to_kb(
+    input_image: np.ndarray,
+    output_image_path: str = None,
+    target_size_kb: int = 100,
+    dpi: int = 300,
+):
     """
     Resize an image to a target size in KB.
     将图像调整大小至目标文件大小（KB）。
@@ -83,7 +91,7 @@ def resize_image_to_kb(input_image: np.ndarray, output_image_path: str = None, t
             if output_image_path:
                 with open(output_image_path, "wb") as f:
                     f.write(img_byte_arr.getvalue())
-            
+
             return img_byte_arr.getvalue()
 
         # Reduce the quality if the image is still too large
@@ -176,19 +184,20 @@ def numpy_2_base64(img: np.ndarray) -> str:
 
 def base64_2_numpy(base64_image: str) -> np.ndarray:
     # Remove the data URL prefix if present
-    if base64_image.startswith('data:image'):
-        base64_image = base64_image.split(',')[1]
-    
+    if base64_image.startswith("data:image"):
+        base64_image = base64_image.split(",")[1]
+
     # Decode base64 string to bytes
     img_bytes = base64.b64decode(base64_image)
-    
+
     # Convert bytes to numpy array
     img_array = np.frombuffer(img_bytes, dtype=np.uint8)
-    
+
     # Decode the image array
     img = cv2.imdecode(img_array, cv2.IMREAD_UNCHANGED)
-    
+
     return img
+
 
 # 字节流转base64
 def bytes_2_base64(img_byte_arr: bytes) -> str:
@@ -316,7 +325,10 @@ def add_background(input_image, bgr=(0, 0, 0), mode="pure_color"):
 
     return output
 
-def add_background_with_image(input_image: np.ndarray, background_image: np.ndarray) -> np.ndarray:
+
+def add_background_with_image(
+    input_image: np.ndarray, background_image: np.ndarray
+) -> np.ndarray:
     """
     本函数的功能为为透明图像加上背景。
     :param input_image: numpy.array(4 channels), 透明图像
@@ -340,12 +352,15 @@ def add_background_with_image(input_image: np.ndarray, background_image: np.ndar
 
     # 修正混合公式
     output = cv2.merge(
-        (b * a_cal + b2 * (1 - a_cal),
-         g * a_cal + g2 * (1 - a_cal),
-         r * a_cal + r2 * (1 - a_cal))
+        (
+            b * a_cal + b2 * (1 - a_cal),
+            g * a_cal + g2 * (1 - a_cal),
+            r * a_cal + r2 * (1 - a_cal),
+        )
     )
 
     return output.astype(np.uint8)
+
 
 def add_watermark(
     image, text, size=50, opacity=0.5, angle=45, color="#8B8B1B", space=75
@@ -362,3 +377,13 @@ def add_watermark(
         space=space,
     )
     return np.array(watermarker.image.convert("RGB"))
+
+
+# 使用itemgetter获取dict的属性
+def get_dict_value(name: str):
+    return itemgetter(name)
+
+
+# 查看list里的每一项是否出现False或者None
+def check_values_nil(vals: list[bool | None]):
+    return all(item is not None and item is not False for item in vals)

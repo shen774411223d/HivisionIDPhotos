@@ -1,4 +1,6 @@
-from fastapi import FastAPI, UploadFile, Form, File, Request
+import asyncio
+import time
+from fastapi import FastAPI, UploadFile, Form, File
 from hivision import IDCreator
 from hivision.error import FaceError
 from hivision.creator.layout_calculator import (
@@ -14,11 +16,13 @@ from hivision.utils import (
     hex_to_rgb,
     add_watermark,
     save_image_dpi_to_bytes,
+    get_dict_value,
+    check_values_nil,
 )
-import base64
 import numpy as np
 import cv2
 from starlette.middleware.cors import CORSMiddleware
+from hivision.image_helper import image_to_base64
 
 app = FastAPI()
 creator = IDCreator()
@@ -52,11 +56,11 @@ async def idphoto_inference(
     face_detect_model: str = Form("mtcnn"),
     hd: bool = Form(True),
     dpi: int = Form(300),
-    face_align: bool = Form(False),
-    head_measure_ratio: float = 0.2,
-    head_height_ratio: float = 0.45,
-    top_distance_max: float = 0.12,
-    top_distance_min: float = 0.10,
+    face_align: bool = Form(True),
+    head_measure_ratio: float = Form(0.2),
+    head_height_ratio: float = Form(0.45),
+    top_distance_max: float = Form(0.12),
+    top_distance_min: float = Form(0.10),
 ):
     # 如果传入了base64，则直接使用base64解码
     if input_image_base64:
@@ -367,6 +371,118 @@ async def idphoto_crop_inference(
             result_message["image_base64_hd"] = bytes_2_base64(result_image_hd_bytes)
 
     return result_message
+
+
+# 集成接口，将几个接口逻辑集成到一个接口内
+@app.post("/generate-idphoto-task")
+async def generate_idphoto_task_reference(
+    input_image_url: str = Form(None),
+    input_image_base64: str = Form(None),
+    height: int = Form(413),
+    width: int = Form(295),
+    human_matting_model: str = Form("modnet_photographic_portrait_matting"),
+    face_detect_model: str = Form("mtcnn"),
+    hd: bool = Form(True),
+    dpi: int = Form(300),
+    face_align: bool = Form(True),
+    head_measure_ratio: float = Form(0.2),
+    head_height_ratio: float = Form(0.45),
+    top_distance_max: float = Form(0.12),
+    top_distance_min: float = Form(0.10),
+    kb: int = Form(None),
+    color: str = Form("000000"),
+    render: int = Form(0),
+):
+    start_time = time.time()
+    img_base64 = ""
+    if input_image_url is not None:
+        img_base64 = image_to_base64(input_image_url, True)
+    elif input_image_base64 is not None:
+        img_base64 = input_image_base64
+    else:
+        return {"Data": None, "Error": {"ret": 0, "msg": "未传递任何参数！"}}
+
+    idphoto_payload = {
+        "input_image_base64": img_base64,
+        "height": height,
+        "width": width,
+        "human_matting_model": human_matting_model,
+        "face_detect_model": face_detect_model,
+        "hd": hd,
+        "dpi": dpi,
+        "face_align": face_align,
+        "head_measure_ratio": head_measure_ratio,
+        "head_height_ratio": head_height_ratio,
+        "top_distance_max": top_distance_max,
+        "top_distance_min": top_distance_min,
+    }
+    extra_payload = {
+        "color": color,
+        "kb": kb,
+        "render": render,
+    }
+    idphoto_result = await idphoto_inference(**idphoto_payload)
+
+    if not idphoto_result["status"]:
+        return {
+            "Data": None,
+            "Error": {"ret": 0, "msg": "生成错误，请检查上传的肖像图"},
+        }
+    photo_bg_hd_task = asyncio.create_task(
+        photo_add_background(
+            input_image_base64=idphoto_result["image_base64_hd"],
+            dpi=dpi,
+            **extra_payload,
+        )
+    )
+    photo_bg_standard_task = asyncio.create_task(
+        photo_add_background(
+            input_image_base64=idphoto_result["image_base64_standard"],
+            dpi=dpi,
+            **extra_payload,
+        )
+    )
+    photo_bg_hd_result, photo_bg_standard_result = await asyncio.gather(
+        photo_bg_hd_task, photo_bg_standard_task
+    )
+    layout_photo_result = await generate_layout_photos(
+        input_image_base64=photo_bg_hd_result["image_base64"],
+        dpi=dpi,
+        height=height,
+        width=width,
+        kb=kb,
+    )
+    get_base64 = get_dict_value("image_base64")
+    # 透明图，带背景图，排版图是否全部成功
+    result_status = check_values_nil(
+        [
+            photo_bg_hd_result["status"],
+            photo_bg_standard_result["status"],
+            layout_photo_result["status"],
+        ]
+    )
+    end_time = time.time()
+    time_consuming = round(end_time - start_time, 2)
+
+    return {
+        "Data": {
+            # 任务生成时长
+            "time_consuming": time_consuming,
+            # 透明图，带背景图，排版图必须生成成功
+            "status": result_status,
+            # 透明图 标准
+            "idphoto_standard": idphoto_result["image_base64_standard"],
+            # 透明图 高清
+            "idphoto_hd": idphoto_result["image_base64_hd"],
+            # 带背景图 标准
+            "idphoto_bg_standard": get_base64(photo_bg_standard_result),
+            # 带背景图 高清
+            "idphoto_bg_hd": get_base64(photo_bg_hd_result),
+            # 排版图
+            "layout_idphoto": get_base64(layout_photo_result),
+        },
+        "Error": {"ret": 1, "msg": "ok"},
+    }
 
 
 if __name__ == "__main__":
