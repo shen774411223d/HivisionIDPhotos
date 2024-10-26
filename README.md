@@ -129,6 +129,10 @@ HivisionIDPhoto 旨在开发一种实用、系统性的证件照智能制作算�
 
 - Python >= 3.7（项目主要测试在 python 3.10）
 - OS: Linux, Windows, MacOS
+- 本地请执行：`conda activate py310`
+  - 导出 conda `conda env export > environment.yml`
+  - 在其他电脑上导入 `conda env create -f environment.yml`
+  - 导入后安装依赖启动
 
 ## 1. 克隆项目
 
